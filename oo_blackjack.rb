@@ -9,30 +9,21 @@ require 'pry'
 # Example - Deal, Shuffle, Hit, 
 
 class Card
-	attr_accessor :suit, :face_value
+  attr_accessor :face_value, :suit
 
-	def initialize (s, fv)
-		@suit = s
-		@face_value = fv
-	end
-
-	def pretty_output
-		puts "The #{face_value} of #{find_suit}"
-	end
-	
-	def to_s
-		pretty_output
-	end
-	
-	def find_suit
-    ret_val = case suit
-                when 'H' then 'Hearts'
-                when 'D' then 'Diamonds'
-                when 'S' then 'Spades'
-                when 'C' then 'Clubs'
-              end
-    ret_val
+  def initialize (fv, s)
+    @face_value = fv
+    @suit = s
   end
+
+  def pretty_output
+    puts "#{face_value} of #{suit}"
+  end
+  
+  # def to_s
+  #   pretty_output
+  # end
+ 
 end
 
 class Deck
@@ -41,62 +32,30 @@ class Deck
 	def initialize
 		@cards = []
 
-		value = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
-		suit = ['H','D','S','C']
-		@cards = value.product(suit)
-		
-	end		
+		['2','3','4','5','6','7','8','9','10','Jack','Queen','King','Ace'].each do |face_value|
+			['Hearts','Diamonds','Spades','Clubs'].each do |suit|
+				@cards << Card.new(face_value,suit)	
+			end	
+		end
+		shuffle_deck!
+	end
 	
 	def shuffle_deck!
-		@cards.shuffle!
+		cards.shuffle!
 	end
 
 	def deal_one
 		cards.pop
 	end
 
+	def size
+		cards.size
+	end
+
 end
 
-module Hand 
-
-	def show_hand
-		cards.each do |card|
-			card.pretty_output
-		end
-	end
-
-	def calculate_total(cards)
-		
-		arr = cards.map{ |e| e[0] }
-
-		total = 0
-		arr.each do |value|
-			if value == "A"
-				total += 11
-			elsif value.to_i == 0 # J,Q,K
-				total += 10
-			else
-				total += value.to_i
-			end
-	end
-
-
-# control for Aces
-	arr.select{|e| e == "A"}.count.times do
-		total -= 10 if total > 21
-	end
-
-	total
-	end
-	
-	def show_total
-
-	end
-end
 
 class Player
-
-	include Hand
 
 	attr_accessor :name , :cards
 
@@ -108,34 +67,107 @@ end
 
 class Dealer < Player	
 
+	attr_accessor :name , :cards
+
 	def initialize (name = 'Dealer')
 		@name = name
 		@cards = []	
 	end
 end
 
-#Start the game
+class Hand
 
-deck = Deck.new
-deck.shuffle_deck!
+end
+
+# Blackjack Class should ask name, shuffle deck, deal initial hands, and show proper total to start
+# First Player turn, then dealer turn, showing totals as you go - hit_or_stay
+
+class Blackjack
+
+	def calculate_total(cards)
+		
+		arr = cards.map{ |e| e[0] }
+
+		total = 0
+		arr.each do |value|
+			if value == "Ace"
+				total += 11
+			elsif value.to_i == 0 # J,Q,K
+				total += 10
+			else
+				total += value.to_i
+			end
+	end
+# control for Aces
+		arr.select{|e| e == "Ace"}.count.times do
+		total -= 10 if total > 21
+	end
+
+		total
+	end
+	
+	def show_total(player)
+		puts "Showing a total of: #{player.calculate_total}"
+	end
+
+	def start
+		deck = Deck.new
+		deck.shuffle_deck!
+		dealer = Dealer.new
+		player = Player.new
+		dealer_total = 0
+		player_total = 0
+
+		2.times do
+			dealer.cards << deck.deal_one
+			player.cards << deck.deal_one
+		end
 
 
 
-dealer = Dealer.new
 
-dealer.cards << deck.deal_one
-dealer.cards << deck.deal_one
+		puts "Welcome to Blackjack, what's your name, player?"
+		player.name = gets.chomp
 
-#setup player
-player = Player.new
+		puts "#{dealer.name} is showing:"
+		puts "#{dealer.cards}"
+		puts "#{player.name} is showing:"
+		puts "#{player.cards}"
+		
 
-puts "Enter your name:"
-player.name = gets.chomp
+		player_total = calculate_total(player.cards)
+		puts "For a total of: #{player_total}"
 
-player.cards << deck.deal_one
-player.cards << deck.deal_one
+		#player.hit_or_stay
 
-binding.pry
+	end
+
+
+
+	def hit_or_stay(player)
+		if player == "Dealer"
+			#do dealer logic
+		else
+			"puts #{player.name}, enter h to hit or s to stay"
+		end
+
+	end
+
+	def who_won
+
+	end
+
+	def play_again?
+
+	end
+
+end
+
+game = Blackjack.new
+game.start
+
+
+
 
 	
 
